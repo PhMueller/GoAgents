@@ -7,8 +7,12 @@ type MessageCreate struct {
 	Content  string    `json:"content" binding:"required"`
 }
 
+type MessagesByThreadRead struct {
+	ThreadId uuid.UUID `json:"thread_id"`
+}
+
 type MessageRead struct {
-	ID       string `json:"id"`
-	ThreadId string `json:"thread_id"`
-	Content  string `json:"content"`
+	ID       uuid.UUID `json:"id"`
+	ThreadId uuid.UUID `json:"thread_id"`
+	Content  string    `json:"content"`
 }

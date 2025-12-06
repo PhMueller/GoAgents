@@ -16,8 +16,16 @@ func NewMessagesHandler(messageService *services.MessageService) *MessagesHandle
 	return &MessagesHandler{MessageService: messageService}
 }
 
-func (m *MessagesHandler) GetMessages(w http.ResponseWriter, r *http.Request) {
-	messages := m.MessageService.GetMessages()
+func (m *MessagesHandler) GetMessagesByThreadId(w http.ResponseWriter, r *http.Request) {
+
+	var msg schema.MessagesByThreadRead
+
+	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	messages := m.MessageService.GetMessagesByThreadId(msg.ThreadId)
 	// TODO: How to error handling :D
 
 	w.WriteHeader(http.StatusOK)

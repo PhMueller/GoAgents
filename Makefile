@@ -17,3 +17,13 @@ migrate-up:
 
 migrate-down:
 	migrate -database $${DATABASE_URL} -path db/migrations down
+
+# Force a specific migration version
+# E.g. to force to version 5, run: make migrate-force:5
+migrate-force\:%:
+	migrate -database $${DATABASE_URL} -path db/migrations force $(*)
+
+# Generate the SQLC repository code.
+# It uses the sqlc.yaml configuration file and the migrations in the db folder.
+generate-repository-code:
+	sqlc generate

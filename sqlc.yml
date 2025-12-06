@@ -1,0 +1,34 @@
+# # Notes:
+# ## overrides
+# Following the official sqlc documentation to we need to specify override options
+# for nullable and non-nullable uuid types separately.
+# Excerpt from https://docs.sqlc.dev/en/stable/howto/overrides.html
+# >> A single db_type override configuration applies to either nullable or non-nullable columns, but not both.
+# >> If you want the same Go type to override regardless of nullability, you’ll need to configure two overrides:
+# >> one with nullable: true and one without.
+
+version: "2"
+sql:
+  - schema: "db/migrations/"
+    queries: "db/queries/"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "repository"
+        out: "db/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_interface: true
+        overrides:
+        - db_type: "uuid"
+          nullable: true
+          go_type:
+            import: "github.com/google/uuid"
+            type: "UUID"
+        - db_type: "uuid"
+          nullable: false
+          go_type:
+            import: "github.com/google/uuid"
+            type: "UUID"
+    rules:
+      - sqlc/db-prepare

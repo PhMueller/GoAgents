@@ -37,5 +37,6 @@ func NewServer() *Server {
 
 func (s *Server) SetupRoutes(messagesService *services.MessageService) {
 	messagesHandler := routers.NewMessagesHandler(messagesService)
-	s.Router.Get("/messages", messagesHandler.GetMessages)
+	s.Router.Get("/messages", messagesHandler.GetMessagesByThreadId)
+	s.Router.Post("/messages/create", messagesHandler.CreateMessage)
 }
