@@ -29,7 +29,7 @@ func (m *MessagesHandler) GetMessagesByThreadId(w http.ResponseWriter, r *http.R
 	}
 
 	messages := m.MessageService.GetMessagesByThreadId(msg.ThreadId)
-	// TODO: How to error handling :D
+	// TODO: How to error handling really!? :D
 
 	w.WriteHeader(http.StatusOK)
 
@@ -39,14 +39,20 @@ func (m *MessagesHandler) GetMessagesByThreadId(w http.ResponseWriter, r *http.R
 }
 
 func (m *MessagesHandler) CreateMessage(w http.ResponseWriter, r *http.Request) {
-	var msg schema.MessageCreate
+	threadIDStr := chi.URLParam(r, "thread_id")
+	threadID, err := uuid.Parse(threadIDStr)
+	if err != nil {
+		InvalidThreadIdError(w, r)
+		return
+	}
 
+	var msg schema.MessageCreate
 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
 		InvalidRequestBodyError(w, r)
 		return
 	}
 
-	createdMsg, err := m.MessageService.CreateMessage(msg)
+	createdMsg, err := m.MessageService.CreateMessage(threadID, msg)
 	if err != nil {
 		InternalServiceError(w, r)
 		return
