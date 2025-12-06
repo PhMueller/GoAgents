@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+
 	"examples.com/assistants/internal/schema"
 	"examples.com/assistants/internal/services"
 )
@@ -39,18 +42,19 @@ func (m *MessagesHandler) CreateMessage(w http.ResponseWriter, r *http.Request) 
 	var msg schema.MessageCreate
 
 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		InvalidRequestBodyError(w, r)
 		return
 	}
 
 	createdMsg, err := m.MessageService.CreateMessage(msg)
 	if err != nil {
-		http.Error(w, "Failed to create message", http.StatusInternalServerError)
+		InternalServiceError(w, r)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdMsg); err != nil {
-		http.Error(w, "Encode error", http.StatusInternalServerError)
+		InternalServiceError(w, r)
+		return
 	}
 }
