@@ -1,0 +1,22 @@
+services:
+  go_postgres:
+    restart: unless-stopped
+    image: postgres:18
+    container_name: go-postgres
+    volumes:
+      - go_postgres_data:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_DB}
+      - POSTGRES_PORT=${DATABASE_PORT}
+    ports:
+      - "${DATABASE_PORT}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  go_postgres_data:
