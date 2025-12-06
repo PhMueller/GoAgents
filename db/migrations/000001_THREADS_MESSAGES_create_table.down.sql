@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TABLE IF EXISTS threads;
+DROP TABLE IF EXISTS messages;
+
+COMMIT;
