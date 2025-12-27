@@ -16,11 +16,13 @@ type Server struct {
 func NewServer() *Server {
 	server := &Server{Engine: gin.Default()}
 
+	return server
+}
+
+func (s *Server) AddValidators() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		_ = v.RegisterValidation("isStringValidUUID", schema.IsStringValidUUID)
 	}
-
-	return server
 }
 
 func (s *Server) SetupRoutes(messagesService *services.MessageService, threadService *services.ThreadService) {

@@ -36,6 +36,7 @@ func main() {
 
 	s := server.NewServer()
 	s.SetupRoutes(messageService, threadService)
+	s.AddValidators()
 
 	if err := s.Engine.Run("localhost:8080"); err != nil {
 		panic(err)
