@@ -9,21 +9,14 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createThread = `-- name: CreateThread :one
-INSERT INTO threads (id, title) VALUES ($1, $2)
-RETURNING pk, id, title, created_at
+INSERT INTO threads (title) VALUES ( $1) RETURNING pk, id, title, created_at
 `
 
-type CreateThreadParams struct {
-	ID    uuid.UUID   `json:"id"`
-	Title pgtype.Text `json:"title"`
-}
-
-func (q *Queries) CreateThread(ctx context.Context, arg CreateThreadParams) (Thread, error) {
-	row := q.db.QueryRow(ctx, createThread, arg.ID, arg.Title)
+func (q *Queries) CreateThread(ctx context.Context, title *string) (Thread, error) {
+	row := q.db.QueryRow(ctx, createThread, title)
 	var i Thread
 	err := row.Scan(
 		&i.Pk,
@@ -50,12 +43,12 @@ func (q *Queries) DeleteThread(ctx context.Context, id uuid.UUID) (Thread, error
 	return i, err
 }
 
-const getThread = `-- name: GetThread :one
+const getThreadById = `-- name: GetThreadById :one
 SELECT pk, id, title, created_at FROM threads WHERE id = $1
 `
 
-func (q *Queries) GetThread(ctx context.Context, id uuid.UUID) (Thread, error) {
-	row := q.db.QueryRow(ctx, getThread, id)
+func (q *Queries) GetThreadById(ctx context.Context, id uuid.UUID) (Thread, error) {
+	row := q.db.QueryRow(ctx, getThreadById, id)
 	var i Thread
 	err := row.Scan(
 		&i.Pk,
@@ -64,33 +57,4 @@ func (q *Queries) GetThread(ctx context.Context, id uuid.UUID) (Thread, error) {
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const getThreads = `-- name: GetThreads :many
-SELECT pk, id, title, created_at FROM threads WHERE id in ($1) ORDER BY id
-`
-
-func (q *Queries) GetThreads(ctx context.Context, id uuid.UUID) ([]Thread, error) {
-	rows, err := q.db.Query(ctx, getThreads, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Thread
-	for rows.Next() {
-		var i Thread
-		if err := rows.Scan(
-			&i.Pk,
-			&i.ID,
-			&i.Title,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }

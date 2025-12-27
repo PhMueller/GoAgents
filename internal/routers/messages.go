@@ -1,14 +1,12 @@
 package routers
 
 import (
-	"encoding/json"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 
 	"examples.com/assistants/internal/schema"
 	"examples.com/assistants/internal/services"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type MessagesHandler struct {
@@ -19,48 +17,80 @@ func NewMessagesHandler(messageService *services.MessageService) *MessagesHandle
 	return &MessagesHandler{MessageService: messageService}
 }
 
-func (m *MessagesHandler) GetMessagesByThreadId(w http.ResponseWriter, r *http.Request) {
+func (m *MessagesHandler) GetMessagesByThreadId(context *gin.Context) {
 
-	var msg schema.MessagesByThreadRead
+	var request schema.GetMessageRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	err := context.ShouldBindUri(&request)
+	if err != nil {
+		context.JSON(GinInvalidThreadIdError())
 		return
 	}
 
-	messages := m.MessageService.GetMessagesByThreadId(msg.ThreadId)
-	// TODO: How to error handling really!? :D
-
-	w.WriteHeader(http.StatusOK)
-
-	if err := json.NewEncoder(w).Encode(messages); err != nil {
-		http.Error(w, "DecodeError", http.StatusInternalServerError)
+	err = context.ShouldBind(&request)
+	if err != nil {
+		context.JSON(GinInvalidThreadIdError())
+		return
 	}
+
+	threadId, err := uuid.Parse(request.ThreadId)
+	if err != nil {
+		context.JSON(GinInvalidThreadIdError())
+		return
+	}
+
+	// TODO: How to do proper error handling?
+	messages := m.MessageService.GetMessagesByThreadId(threadId)
+
+	messagesRead := make([]schema.GetMessageResponse, len(messages))
+	for i, message := range messages {
+		messagesRead[i] = schema.GetMessageResponse{
+			ID:       message.ID,
+			ThreadId: message.ThreadID,
+			Content:  message.Content,
+		}
+	}
+	context.JSON(http.StatusOK, messagesRead)
 }
 
-func (m *MessagesHandler) CreateMessage(w http.ResponseWriter, r *http.Request) {
-	threadIDStr := chi.URLParam(r, "thread_id")
-	threadID, err := uuid.Parse(threadIDStr)
+func (m *MessagesHandler) CreateMessage(context *gin.Context) {
+
+	var request schema.CreateMessageRequest
+	err := context.ShouldBindUri(&request)
 	if err != nil {
-		InvalidThreadIdError(w, r)
+		context.JSON(GinInvalidThreadIdError())
 		return
 	}
 
-	var msg schema.MessageCreate
-	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-		InvalidRequestBodyError(w, r)
-		return
-	}
-
-	createdMsg, err := m.MessageService.CreateMessage(threadID, msg)
+	threadID, err := uuid.Parse(request.ThreadId)
 	if err != nil {
-		InternalServiceError(w, r)
+		context.JSON(GinInvalidThreadIdError())
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(createdMsg); err != nil {
-		InternalServiceError(w, r)
+	err = context.ShouldBind(&request)
+	if err != nil {
+		// TODO: decide if the thread id is missing or the body is invalid.
+		context.JSON(GinInvalidThreadIdError())
 		return
 	}
+
+	createdMsg, err := m.MessageService.CreateMessage(request)
+	if err != nil {
+		context.JSON(GinInternalServiceError())
+		return
+	}
+
+	createMessageResponse := schema.CreateMessageResponse{
+		ID:       createdMsg.ID,
+		ThreadId: threadID,
+		Content:  createdMsg.Content,
+	}
+	//responseJson, err := json.Marshal(createMessageResponse)
+	//if err != nil {
+	//	context.JSON(GinInternalServiceError())
+	//	return
+	//}
+
+	context.JSON(http.StatusCreated, createMessageResponse)
 }

@@ -8,13 +8,33 @@ brew install sqlc
 brew install golang-migrate
 ```
 
+## Architecture
+The service is structured following the principles of Clean Architecture.
+We split into the following layers: `presentation`, `application`, `data`, and `domain`.
+
+The presentation layer is handling HTTP requests using the Gin framework.
+The application layer contains the business logic and orchestrates the flow of data between the presentation layer and 
+the data layer.
+
+The data layer is responsible for interacting with the PostgreSQL database using `sqlc` for type-safe SQL queries. 
+The application layer is the only layer that interacts with the data layer.
+The data layer returns data transfer objects (DTOs) to the application layer, which then maps them to domain entities.
+
+We do not implement an additional repository pattern, as `sqlc` already provides a clear interface for data access.
+Nullable values in `sqlc` are implemented with pointer types. (The application layer is responsible for handling nil 
+values appropriately.)
+
+We use migration files to manage the database schema.
+The domain layer defines the core entities and their behaviors.
+
+
 ## SQLC 
 To generate the database models and queries, run the following command from the /assistants directory:
 ```shell
 make generate-repository-code
 ```
 
-We use sqlc as tool to avoid ORM code. 
+We use `sqlc` as tool to avoid ORM code. 
 It generates type-safe code from SQL queries and schema definition.
 The configuration file is located in `sqlc.yml`.
 
@@ -54,3 +74,26 @@ If an exception happens, you might need to force down to a version:
 # MIGRATION_NUMBER is the number of the migration you want to force down to
 make migrate-force:<MIGRATION_NUMBER>
 ```
+
+There is no package in golang like `alembic` in python that automatically scans the project for required new migrations. 
+You need to write them manually. 
+
+`golang-migrate` only helps to execute them in a controlled manner and keeps track of which migrations have already 
+been applied to the database.
+
+## Validation
+We use the `go-playground/validator` package for validation of incoming requests.
+Validation tags are added to the request structs in the `presentation` layer.
+
+## Further reading
+Very nice tutorial on Golang:
+https://golang.howtos.io/
+
+Split the route into request parsing, validation and response handling:
+https://medium.com/@rluders/improving-request-validation-and-response-handling-in-go-microservices-cc54208123f2
+
+Good `sqlc` example
+https://conroy.org/introducing-sqlc
+
+Tips on robust error handling, custom errors, error wrapping, error-groups (err-groups), ...
+https://leapcell.io/blog/robust-go-best-practices-for-error-handling

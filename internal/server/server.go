@@ -2,41 +2,37 @@ package server
 
 import (
 	"examples.com/assistants/internal/routers"
+	"examples.com/assistants/internal/schema"
 	"examples.com/assistants/internal/services"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
-//// ... router/health.go
-
-//type HealthResponse struct {
-//	Status string `json:"status"`
-//}
-//
-//// Implement a health endpoint that returns 200 if it is alive.
-//func health(writer http.ResponseWriter, request *http.Request) {
-//
-//	response := HealthResponse{Status: "ok"}
-//	writer.WriteHeader(http.StatusOK)
-//
-//	if err := json.NewEncoder(writer).Encode(response); err != nil {
-//		http.Error(writer, err.Error(), http.StatusInternalServerError)
-//		return
-//	}
-//}
-
-// ../server
-
 type Server struct {
-	Router *chi.Mux
+	Engine *gin.Engine
 }
 
 func NewServer() *Server {
-	server := &Server{Router: chi.NewRouter()}
+	server := &Server{Engine: gin.Default()}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		_ = v.RegisterValidation("isStringValidUUID", schema.IsStringValidUUID)
+	}
+
 	return server
 }
 
-func (s *Server) SetupRoutes(messagesService *services.MessageService) {
+func (s *Server) SetupRoutes(messagesService *services.MessageService, threadService *services.ThreadService) {
 	messagesHandler := routers.NewMessagesHandler(messagesService)
-	s.Router.Get("/messages", messagesHandler.GetMessagesByThreadId)
-	s.Router.Post("/messages/{thread_id}", messagesHandler.CreateMessage)
+	threadsHandler := routers.NewThreadsHandler(threadService)
+
+	v1 := s.Engine.Group("/v1")
+	messagesRouter := v1.Group("/messages")
+	messagesRouter.GET("/:thread_id", messagesHandler.GetMessagesByThreadId)
+	messagesRouter.POST("/messages/:thread_id", messagesHandler.CreateMessage)
+
+	threadsRouter := v1.Group("/threads")
+	threadsRouter.POST("", threadsHandler.CreateThread)
+	threadsRouter.GET("/:thread_id", threadsHandler.GetThreadById)
 }

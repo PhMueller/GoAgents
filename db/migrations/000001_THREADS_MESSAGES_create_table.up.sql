@@ -4,7 +4,7 @@ BEGIN;
 -- we use a serial primary key for internal use and a uuid for external references
 -- That id is automatically generated using gen_random_uuid()
 CREATE TABLE IF NOT EXISTS threads (
-    pk SERIAL PRIMARY KEY,
+    pk bigint generated always as identity PRIMARY KEY,
     id uuid UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     title TEXT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -14,7 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at);
 
 -- Create the MESSAGES table
 CREATE TABLE IF NOT EXISTS messages (
-    pk SERIAL PRIMARY KEY,
+    pk bigint generated always as identity PRIMARY KEY,
     id uuid UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     thread_id uuid REFERENCES threads(id),
     content TEXT NOT NULL,

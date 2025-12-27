@@ -1,0 +1,15 @@
+meta {
+  name: GET messages in thread
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{URL}}/messages/:thread_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  thread_id: {{__thread_id}}
+}

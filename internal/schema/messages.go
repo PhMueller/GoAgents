@@ -1,17 +1,26 @@
 package schema
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
-type MessageCreate struct {
-	Content string `json:"content" binding:"required"`
+type GetMessageRequest struct {
+	// the thread id comes from the path parameter
+	//ThreadId string `form:"thread_id" binding:"required,IsStringValidUUID"` // validate:"uuid"`
+	ThreadId string `form:"thread_id" binding:"required" validate:"uuid"`
 }
 
-type MessagesByThreadRead struct {
-	ThreadId uuid.UUID `json:"thread_id"`
+type CreateMessageRequest struct {
+	// the thread id comes from the path parameter
+	ThreadId string `form:"thread_id" binding:"required"`
+	Content  string `json:"content" binding:"required"`
 }
 
-type MessageRead struct {
+type MessageResponse struct {
 	ID       uuid.UUID `json:"id"`
 	ThreadId uuid.UUID `json:"thread_id"`
 	Content  string    `json:"content"`
 }
+
+type CreateMessageResponse = MessageResponse
+type GetMessageResponse = MessageResponse

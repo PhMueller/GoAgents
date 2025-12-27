@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"examples.com/assistants/db/repository"
 	"examples.com/assistants/internal/config"
@@ -30,14 +29,15 @@ func main() {
 
 	queries := repository.New(conn)
 	messageService := services.NewMessageService(ctx, *queries)
+	threadService := services.NewThreadService(ctx, *queries)
 
 	messages := messageService.GetMessagesByThreadId(uuid.Must(uuid.Parse("69359037-9599-48e7-b8f2-48393c019135")))
 	fmt.Printf("Messages: %+v\n", messages)
 
 	s := server.NewServer()
-	s.SetupRoutes(messageService)
+	s.SetupRoutes(messageService, threadService)
 
-	if err := http.ListenAndServe("localhost:8080", s.Router); err != nil {
+	if err := s.Engine.Run("localhost:8080"); err != nil {
 		panic(err)
 	}
 }

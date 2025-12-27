@@ -45,12 +45,15 @@ func (m *MessageService) GetMessagesByThreadId(threadId uuid.UUID) []repository.
 	return messages
 }
 
-func (m *MessageService) CreateMessage(threadId uuid.UUID, message schema.MessageCreate) (repository.Message, error) {
+func (m *MessageService) CreateMessage(message schema.CreateMessageRequest) (repository.Message, error) {
+
+	threadID := uuid.Must(uuid.Parse(message.ThreadId))
 
 	createMessageParams := repository.CreateMessageParams{
-		ThreadID: threadId,
+		ThreadID: threadID,
 		Content:  message.Content,
 	}
+
 	dbMessage, err := m.queries.CreateMessage(m.ctx, createMessageParams)
 	return dbMessage, err
 }

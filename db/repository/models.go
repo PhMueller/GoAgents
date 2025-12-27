@@ -10,7 +10,7 @@ import (
 )
 
 type Message struct {
-	Pk        int32              `json:"pk"`
+	Pk        int64              `json:"pk"`
 	ID        uuid.UUID          `json:"id"`
 	ThreadID  uuid.UUID          `json:"thread_id"`
 	Content   string             `json:"content"`
@@ -18,8 +18,8 @@ type Message struct {
 }
 
 type Thread struct {
-	Pk        int32              `json:"pk"`
+	Pk        int64              `json:"pk"`
 	ID        uuid.UUID          `json:"id"`
-	Title     pgtype.Text        `json:"title"`
+	Title     *string            `json:"title"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }

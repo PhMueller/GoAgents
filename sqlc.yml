@@ -14,21 +14,37 @@ sql:
     engine: "postgresql"
     gen:
       go:
+        # the package name for generated code and the output directory. This is like a repository pattern.
         package: "repository"
         out: "db/repository"
         sql_package: "pgx/v5"
+        # If true, add JSON tags to generated structs. Default is false.
         emit_json_tags: true
+        # If true, output a Querier interface in the generated package. Defaults to false
         emit_interface: true
+        # If true, generated types for nullable columns are emitted as pointers (ie. *string) instead of database/sql
+        # null types (ie. NullString). Currently only supported for PostgreSQL if sql_package is pgx/v4 or pgx/v5,
+        # and for SQLite. Defaults to false.
+        emit_pointers_for_null_types: true
+
+        # We can override the mapping from SQL types to Go types here. In this case, we want to map
+        # the PostgreSQL UUID type to the github.com/google/uuid.UUID type in Go.
+        # Be aware that we need to specify separate overrides for nullable and non-nullable UUID types.
+        # See: https://docs.sqlc.dev/en/stable/howto/overrides.html
         overrides:
-        - db_type: "uuid"
-          nullable: true
-          go_type:
-            import: "github.com/google/uuid"
-            type: "UUID"
-        - db_type: "uuid"
-          nullable: false
-          go_type:
-            import: "github.com/google/uuid"
-            type: "UUID"
+          # We override the uuid type to map to google/uuid.UUID for nullable columns.
+          # The Go standard library does not come with a uuid package. For UUID support, sqlc uses the excellent
+          # github.com/google/uuid package, but for the pgx/v5 sql package, sqlc uses pgtype.UUID.
+          # We override it here to use google/uuid.UUID instead.
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - db_type: "uuid"
+            nullable: false
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
     rules:
       - sqlc/db-prepare

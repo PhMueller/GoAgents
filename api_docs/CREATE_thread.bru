@@ -1,0 +1,21 @@
+meta {
+  name: CREATE a thread
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{URL}}/threads
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "TestTitle"
+  }
+}
+
+script:post-response {
+  bru.setVar("__thread_id", res.body.id)
+}

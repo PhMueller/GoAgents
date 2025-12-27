@@ -12,15 +12,14 @@ import (
 
 type Querier interface {
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
-	CreateThread(ctx context.Context, arg CreateThreadParams) (Thread, error)
+	CreateThread(ctx context.Context, title *string) (Thread, error)
 	DeleteMessage(ctx context.Context, id uuid.UUID) (Message, error)
 	DeleteThread(ctx context.Context, id uuid.UUID) (Thread, error)
 	GetMessage(ctx context.Context, id uuid.UUID) (Message, error)
 	GetMessageByMessageId(ctx context.Context, id uuid.UUID) (Message, error)
 	GetMessages(ctx context.Context, id uuid.UUID) ([]Message, error)
 	GetMessagesByThreadId(ctx context.Context, threadID uuid.UUID) ([]Message, error)
-	GetThread(ctx context.Context, id uuid.UUID) (Thread, error)
-	GetThreads(ctx context.Context, id uuid.UUID) ([]Thread, error)
+	GetThreadById(ctx context.Context, id uuid.UUID) (Thread, error)
 }
 
 var _ Querier = (*Queries)(nil)
