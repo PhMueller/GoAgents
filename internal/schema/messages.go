@@ -6,13 +6,12 @@ import (
 
 type GetMessageRequest struct {
 	// the thread id comes from the path parameter
-	//ThreadId string `form:"thread_id" binding:"required,IsStringValidUUID"` // validate:"uuid"`
-	ThreadId string `form:"thread_id" binding:"required" validate:"uuid"`
+	ThreadId string `form:"thread_id" binding:"required,isStringValidUUID"`
 }
 
 type CreateMessageRequest struct {
 	// the thread id comes from the path parameter
-	ThreadId string `form:"thread_id" binding:"required"`
+	ThreadId string `form:"thread_id" binding:"required,isStringValidUUID"`
 	Content  string `json:"content" binding:"required"`
 }
 

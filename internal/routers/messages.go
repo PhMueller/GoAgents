@@ -33,11 +33,7 @@ func (m *MessagesHandler) GetMessagesByThreadId(context *gin.Context) {
 		return
 	}
 
-	threadId, err := uuid.Parse(request.ThreadId)
-	if err != nil {
-		context.JSON(GinInvalidThreadIdError())
-		return
-	}
+	threadId := uuid.Must(uuid.Parse(request.ThreadId))
 
 	// TODO: How to do proper error handling?
 	messages := m.MessageService.GetMessagesByThreadId(threadId)
@@ -62,11 +58,7 @@ func (m *MessagesHandler) CreateMessage(context *gin.Context) {
 		return
 	}
 
-	threadID, err := uuid.Parse(request.ThreadId)
-	if err != nil {
-		context.JSON(GinInvalidThreadIdError())
-		return
-	}
+	threadID := uuid.Must(uuid.Parse(request.ThreadId))
 
 	err = context.ShouldBind(&request)
 	if err != nil {
