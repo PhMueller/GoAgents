@@ -1,5 +1,7 @@
 package schema
 
+import "time"
+
 type CreateThreadRequest struct {
 	/* Input object for the POST /threads endpoint */
 	Title *string `json:"title"`
@@ -14,7 +16,7 @@ type GetThreadRequest struct {
 	ID string `uri:"thread_id" binding:"required,isStringValidUUID"`
 }
 
-type GetThreadsRequest struct {
+type GetThreadsInfoRequest struct {
 	/* Input object for the GET /threads endpoint
 
 	Supports optionally pagination via cursor and size parameters.
@@ -27,16 +29,21 @@ type ThreadResponse struct {
 	/* Base Response object for thread-related endpoints */
 	ID    string  `json:"id"`
 	Title *string `json:"title"`
+
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
 type CreateThreadResponse = ThreadResponse
 type GetThreadResponse = ThreadResponse
 
-type GetThreadsResponse struct {
+type GetThreadsInfoResponse struct {
 	/* Response object for the GET /threads endpoint.
 
 	This object contains a list of threads and a cursor for pagination.
 	*/
-	Items  []ThreadResponse `json:"threads"`
-	Cursor *string          `json:"cursor,omitempty"`
+	Threads []ThreadResponse `json:"threads"`
+	Cursor  *string          `json:"cursor,omitempty"`
+	Size    *int             `json:"size,omitempty"`
 }

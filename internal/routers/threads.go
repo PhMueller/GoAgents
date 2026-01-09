@@ -79,7 +79,7 @@ func (t *ThreadsHandler) GetThreadByID(context *gin.Context) {
 	context.JSON(http.StatusOK, threadResponse)
 }
 
-func (t *ThreadsHandler) ListThreads(context *gin.Context) {
+func (t *ThreadsHandler) GetThreadsInfo(context *gin.Context) {
 	/* This route returns the list of thread ids that are available for a user
 
 	Notes:
@@ -87,10 +87,36 @@ func (t *ThreadsHandler) ListThreads(context *gin.Context) {
 	- The `cursor` field can be used to fetch the next page of results.
 	- If there are no more results, the `cursor` field will be omitted.
 	*/
-	var request schema.GetThreadsRequest
+	var request schema.GetThreadsInfoRequest
 	if err := context.ShouldBindQuery(&request); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	if err := context.ShouldBindUri(&request); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	domainThreads := t.ThreadService.GetThreadsInfo()
+
+	threadsInfoResponseItems := make([]schema.ThreadResponse, 0, len(domainThreads))
+	for i, domainThread := range domainThreads {
+		threadResponse := schema.ThreadResponse{
+			ID:        domainThread.ID,
+			Title:     domainThread.Title,
+			CreatedAt: domainThread.CreatedAt,
+			UpdatedAt: domainThread.UpdatedAt,
+			DeletedAt: domainThread.DeletedAt,
+		}
+		threadsInfoResponseItems[i] = threadResponse
+	}
+
+	threadsInfoResponse := schema.GetThreadsInfoResponse{
+		Threads: threadsInfoResponseItems,
+		Size:    nil,
+		Cursor:  nil,
+	}
+
+	context.JSON(http.StatusOK, threadsInfoResponse)
 }

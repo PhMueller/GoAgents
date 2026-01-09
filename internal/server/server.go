@@ -36,11 +36,15 @@ func (s *Server) SetupRoutes(messagesService *services.MessageService, threadSer
 	threadsHandler := routers.NewThreadsHandler(threadService)
 
 	v1 := s.Engine.Group("/v1")
-	messagesRouter := v1.Group("/messages")
-	messagesRouter.GET("/:thread_id", messagesHandler.GetMessagesByThreadID)
-	messagesRouter.POST("/messages/:thread_id", messagesHandler.CreateMessage)
 
 	threadsRouter := v1.Group("/threads")
 	threadsRouter.POST("", threadsHandler.CreateThread)
+	threadsRouter.GET("", threadsHandler.GetThreadsInfo)
 	threadsRouter.GET("/:thread_id", threadsHandler.GetThreadByID)
+
+	messagesRouter := v1.Group("/threads/:thread_id/messages")
+	messagesRouter.POST("", messagesHandler.CreateMessage)
+	messagesRouter.GET("", messagesHandler.GetMessagesByThreadID)
+	messagesRouter.GET("/:message_id", messagesHandler.GetMessageByMessageID)
+
 }

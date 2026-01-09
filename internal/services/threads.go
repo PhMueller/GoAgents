@@ -37,8 +37,13 @@ func (t *ThreadService) GetThreadByID(threadID uuid.UUID) (domain.Thread, error)
 	return domainThread, err
 }
 
-func (t *ThreadService) ListThreads() []domain.Thread {
-	/* Get information of all threads - paginated */
+func (t *ThreadService) GetThreadsInfo() []domain.Thread {
+	/* Get information of all threads - paginated
+
+	# TODO:
+	- add pagination parameters
+	- add filter on user
+	*/
 	dbThreads, err := t.queries.ListThreads(t.ctx)
 	if err != nil {
 		return []domain.Thread{}

@@ -1,5 +1,27 @@
 # Agent Service
 
+## TODO List
+
+- [ ] Threads
+    - [X] Create Thread
+    - [X] Get Thread by ID
+    - [ ] Get Threads Info: 
+      - [ ] Add pagination
+      - [ ] Add filter on user related data (can the user access these threads)
+    - [ ] Delete Thread
+
+- [ ] Messages
+  - [X] Create Message
+  - [X] Get Message by ID
+  - [ ] List Messages by Thread ID
+
+- [ ] Error handling improvement
+- [ ] Authorization
+- [ ] Rate limiting
+- [ ] Logging
+- [ ] Swagger UI
+- [ ] First try to configure llm 
+- [ ] How to prevent extra parameters in request body?
 
 ## Set up
 
@@ -9,6 +31,7 @@ brew install golang-migrate
 ```
 
 ## Architecture
+
 The service is structured following the principles of Clean Architecture.
 We split into the following layers: `presentation`, `application`, `data`, and `domain`.
 
@@ -16,19 +39,25 @@ The presentation layer is handling HTTP requests using the Gin framework.
 The application layer contains the business logic and orchestrates the flow of data between the presentation layer and 
 the data layer.
 
-The data layer is responsible for interacting with the PostgreSQL database using `sqlc` for type-safe SQL queries. 
-The application layer is the only layer that interacts with the data layer.
-The data layer returns data transfer objects (DTOs) to the application layer, which then maps them to domain entities.
+The data layer (repository) is responsible for interacting with the PostgreSQL database using `sqlc` for type-safe SQL queries. 
+The application layer (services) is the only layer that interacts with the data layer.
+The data layer returns data transfer objects (DTOs) to the application layer. The application layer maps them to domain entities.
 
 We do not implement an additional repository pattern, as `sqlc` already provides a clear interface for data access.
+
 Nullable values in `sqlc` are implemented with pointer types. (The application layer is responsible for handling nil 
-values appropriately.)
+values appropriately.). `sqlc` often maps the types in our case to `pgtype` types, e.g. `pgtype.Timestamptz`.
+This interferes with the nullable pointer handling. We manually adjust the sqlc.yml to override pgtypes to standard go 
+types.
+Issue on github explaining this for timestampz. https://github.com/sqlc-dev/sqlc/issues/814#issuecomment-3042290683
+We like to highlight that you have to override for the case that the type is not nullable and for the case that it is 
+nullable.
 
 We use migration files to manage the database schema.
 The domain layer defines the core entities and their behaviors.
 
-
 ## SQLC 
+
 To generate the database models and queries, run the following command from the /assistants directory:
 ```shell
 make generate-repository-code
@@ -82,10 +111,12 @@ You need to write them manually.
 been applied to the database.
 
 ## Validation
+
 We use the `go-playground/validator` package for validation of incoming requests.
 Validation tags are added to the request structs in the `presentation` layer.
 
 ## Further reading
+
 Very nice tutorial on Golang:
 https://golang.howtos.io/
 
