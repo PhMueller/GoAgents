@@ -30,9 +30,9 @@ func (t *ThreadService) CreateThread(threadCreate schema.CreateThreadRequest) (d
 	return domainThread, err
 }
 
-func (t *ThreadService) GetThreadById(threadId uuid.UUID) (domain.Thread, error) {
+func (t *ThreadService) GetThreadByID(threadID uuid.UUID) (domain.Thread, error) {
 	/* Retrieve a thread by its id. */
-	dbThread, err := t.queries.GetThreadById(t.ctx, threadId)
+	dbThread, err := t.queries.GetThreadById(t.ctx, threadID)
 	domainThread := castRepositoryThreadToDomainThread(dbThread)
 	return domainThread, err
 }

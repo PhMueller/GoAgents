@@ -18,71 +18,108 @@ func NewMessagesHandler(messageService *services.MessageService) *MessagesHandle
 }
 
 func (m *MessagesHandler) CreateMessage(context *gin.Context) {
-
+	/* Create a new message in a thread */
 	var request schema.CreateMessageRequest
 	err := context.ShouldBindUri(&request)
 	if err != nil {
-		context.JSON(GinInvalidThreadIdError())
+		context.JSON(GinInvalidThreadIDError())
 		return
 	}
 
-	threadID := uuid.Must(uuid.Parse(request.ThreadId))
+	threadID := uuid.Must(uuid.Parse(request.ThreadID))
 
 	err = context.ShouldBind(&request)
 	if err != nil {
-		// TODO: decide if the thread id is missing or the body is invalid.
-		context.JSON(GinInvalidThreadIdError())
+		// TODO: Add fine grained error handling.
+		//       - Raise an error if the thread id is missing in the URI.
+		//       - Raise an error if the body is invalid.
+		context.JSON(GinInvalidThreadIDError())
 		return
 	}
 
-	createdMsg, err := m.MessageService.CreateMessage(request)
+	domainMessage, err := m.MessageService.CreateMessage(request)
 	if err != nil {
 		context.JSON(GinInternalServiceError())
 		return
 	}
 
-	createMessageResponse := schema.CreateMessageResponse{
-		ID:       createdMsg.ID,
-		ThreadId: threadID,
-		Content:  createdMsg.Content,
+	responseMessage := schema.CreateMessageResponse{
+		ID:       domainMessage.ID,
+		ThreadID: threadID,
+		Content:  domainMessage.Content,
 	}
-	//responseJson, err := json.Marshal(createMessageResponse)
-	//if err != nil {
-	//	context.JSON(GinInternalServiceError())
-	//	return
-	//}
 
-	context.JSON(http.StatusCreated, createMessageResponse)
+	context.JSON(http.StatusCreated, responseMessage)
 }
 
-func (m *MessagesHandler) GetMessagesByThreadId(context *gin.Context) {
-
+func (m *MessagesHandler) GetMessageByMessageID(context *gin.Context) {
+	/* Retrieve a message by its id */
 	var request schema.GetMessageRequest
 
 	err := context.ShouldBindUri(&request)
 	if err != nil {
-		context.JSON(GinInvalidThreadIdError())
+		// TODO: better handling. Either MessageID invalid or ThreadID invalid
+		context.JSON(GinInternalServiceError())
+		return
+	}
+
+	// We have validated the UUIDs in the binding step. Thus, we can safely parse them.
+	messageID := uuid.Must(uuid.Parse(request.MessageID))
+	threadID := uuid.Must(uuid.Parse(request.ThreadID))
+
+	domainMessage, err := m.MessageService.GetMessageByMessageID(messageID, threadID)
+	if err != nil {
+		context.JSON(GinInternalServiceError())
+		return
+	}
+
+	messageResponse := schema.GetMessageResponse{
+		ID:        domainMessage.ID,
+		ThreadID:  domainMessage.ThreadID,
+		Content:   domainMessage.Content,
+		CreatedAt: domainMessage.CreatedAt,
+		UpdatedAt: domainMessage.UpdatedAt,
+		DeletedAt: domainMessage.DeletedAt,
+	}
+
+	context.JSON(http.StatusOK, messageResponse)
+}
+
+func (m *MessagesHandler) GetMessagesByThreadID(context *gin.Context) {
+	/* Retrieve all messages in a thread */
+	var request schema.GetMessagesRequest
+
+	err := context.ShouldBindUri(&request)
+	if err != nil {
+		context.JSON(GinInvalidThreadIDError())
 		return
 	}
 
 	err = context.ShouldBind(&request)
 	if err != nil {
-		context.JSON(GinInvalidThreadIdError())
+		context.JSON(GinInvalidThreadIDError())
 		return
 	}
 
-	threadId := uuid.Must(uuid.Parse(request.ThreadId))
+	threadID := uuid.Must(uuid.Parse(request.ThreadID))
 
 	// TODO: How to do proper error handling?
-	messages := m.MessageService.GetMessagesByThreadId(threadId)
+	domainMessages := m.MessageService.GetMessagesByThreadID(threadID)
 
-	messagesRead := make([]schema.GetMessageResponse, len(messages))
-	for i, message := range messages {
-		messagesRead[i] = schema.GetMessageResponse{
+	messageResponseItems := make([]schema.GetMessageResponse, len(domainMessages))
+	for i, message := range domainMessages {
+		messageResponseItems[i] = schema.GetMessageResponse{
 			ID:       message.ID,
-			ThreadId: message.ThreadID,
+			ThreadID: message.ThreadID,
 			Content:  message.Content,
 		}
 	}
-	context.JSON(http.StatusOK, messagesRead)
+
+	messagesResponse := schema.GetMessagesResponse{
+		Messages: messageResponseItems,
+		Cursor:   nil,
+		Size:     nil,
+	}
+
+	context.JSON(http.StatusOK, messagesResponse)
 }

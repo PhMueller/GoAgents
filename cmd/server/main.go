@@ -31,7 +31,7 @@ func main() {
 	messageService := services.NewMessageService(ctx, *queries)
 	threadService := services.NewThreadService(ctx, *queries)
 
-	messages := messageService.GetMessagesByThreadId(uuid.Must(uuid.Parse("69359037-9599-48e7-b8f2-48393c019135")))
+	messages := messageService.GetMessagesByThreadID(uuid.Must(uuid.Parse("69359037-9599-48e7-b8f2-48393c019135")))
 	fmt.Printf("Messages: %+v\n", messages)
 
 	s := server.NewServer()

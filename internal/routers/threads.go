@@ -39,7 +39,7 @@ func (t *ThreadsHandler) CreateThread(context *gin.Context) {
 
 }
 
-func (t *ThreadsHandler) GetThreadById(context *gin.Context) {
+func (t *ThreadsHandler) GetThreadByID(context *gin.Context) {
 
 	var getThreadRequest schema.GetThreadRequest
 
@@ -48,7 +48,7 @@ func (t *ThreadsHandler) GetThreadById(context *gin.Context) {
 		//err, ok := err.(validator.ValidationErrors)
 		//if ok {
 		//	if err[0].Field() == "ID" {
-		//		context.JSON(GinInvalidThreadIdError())
+		//		context.JSON(GinInvalidThreadIDError())
 		//		return
 		//	}
 		//} else {
@@ -63,9 +63,9 @@ func (t *ThreadsHandler) GetThreadById(context *gin.Context) {
 	}
 
 	// We have validated that the id is a valid uuid in the schema binding step, so we can safely parse it here.
-	threadId := uuid.Must(uuid.Parse(getThreadRequest.ID))
+	threadID := uuid.Must(uuid.Parse(getThreadRequest.ID))
 
-	domainThread, err := t.ThreadService.GetThreadById(threadId)
+	domainThread, err := t.ThreadService.GetThreadByID(threadID)
 	if err != nil {
 		context.JSON(GinInternalServiceError())
 		return
@@ -77,4 +77,20 @@ func (t *ThreadsHandler) GetThreadById(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, threadResponse)
+}
+
+func (t *ThreadsHandler) ListThreads(context *gin.Context) {
+	/* This route returns the list of thread ids that are available for a user
+
+	Notes:
+	- This endpoint supports cursor based pagination.
+	- The `cursor` field can be used to fetch the next page of results.
+	- If there are no more results, the `cursor` field will be omitted.
+	*/
+	var request schema.GetThreadsRequest
+	if err := context.ShouldBindQuery(&request); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 }

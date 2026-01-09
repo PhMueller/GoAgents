@@ -25,20 +25,24 @@ func NewMessageService(ctx context.Context, queries repository.Queries) *Message
 	return &messageService
 }
 
-func (m *MessageService) GetMessageByMessageId(messageId uuid.UUID) domain.Message {
+func (m *MessageService) GetMessageByMessageID(messageID uuid.UUID, threadID uuid.UUID) (domain.Message, error) {
 	/* Retrieve a message by its id */
-	dbMessage, err := m.queries.GetMessageByMessageId(m.ctx, messageId)
+
+	// TODO: use the thread id to verify that the message belongs to the thread and the user has access to the thread.
+
+	dbMessage, err := m.queries.GetMessageByMessageId(m.ctx, messageID)
 	if err != nil {
 		// TODO: raise proper error
-		return domain.Message{}
+		return domain.Message{}, err
 	}
 	domainMessage := castRepositoryMessageToDomainMessage(dbMessage)
-	return domainMessage
+
+	return domainMessage, nil
 }
 
-func (m *MessageService) GetMessagesByThreadId(threadId uuid.UUID) []domain.Message {
+func (m *MessageService) GetMessagesByThreadID(threadID uuid.UUID) []domain.Message {
 	/* Retrieve all messages in a thread */
-	dbMessages, err := m.queries.GetMessagesByThreadId(m.ctx, threadId)
+	dbMessages, err := m.queries.GetMessagesByThreadId(m.ctx, threadID)
 	if err != nil {
 		// TODO: raise proper error
 		log.Println(err)
@@ -58,7 +62,7 @@ func (m *MessageService) GetMessagesByThreadId(threadId uuid.UUID) []domain.Mess
 
 func (m *MessageService) CreateMessage(message schema.CreateMessageRequest) (domain.Message, error) {
 	/* Create a new message in a thread */
-	threadID := uuid.Must(uuid.Parse(message.ThreadId))
+	threadID := uuid.Must(uuid.Parse(message.ThreadID))
 
 	createMessageParams := repository.CreateMessageParams{
 		ThreadID: threadID,
@@ -74,7 +78,7 @@ func castRepositoryMessageToDomainMessage(dbMessage repository.Message) domain.M
 	/* Helper function: Cast the database object to the domain object */
 	domainMessage := domain.Message{
 		ID:       dbMessage.ID,
-		ThreadId: dbMessage.ThreadID,
+		ThreadID: dbMessage.ThreadID,
 		Content:  dbMessage.Content,
 
 		CreatedAt: dbMessage.CreatedAt,
