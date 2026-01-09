@@ -50,10 +50,9 @@ func (t *ThreadService) GetThreadsInfo() []domain.Thread {
 	}
 
 	// Cast the repository.Thread s to the domain.Thread s
-	var threads []domain.Thread
-	for _, dbThread := range dbThreads {
-		threads = append(threads, castRepositoryThreadToDomainThread(dbThread))
-		return threads
+	threads := make([]domain.Thread, len(dbThreads))
+	for i, dbThread := range dbThreads {
+		threads[i] = castRepositoryThreadToDomainThread(dbThread)
 	}
 	return threads
 }
