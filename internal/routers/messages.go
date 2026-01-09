@@ -17,38 +17,6 @@ func NewMessagesHandler(messageService *services.MessageService) *MessagesHandle
 	return &MessagesHandler{MessageService: messageService}
 }
 
-func (m *MessagesHandler) GetMessagesByThreadId(context *gin.Context) {
-
-	var request schema.GetMessageRequest
-
-	err := context.ShouldBindUri(&request)
-	if err != nil {
-		context.JSON(GinInvalidThreadIdError())
-		return
-	}
-
-	err = context.ShouldBind(&request)
-	if err != nil {
-		context.JSON(GinInvalidThreadIdError())
-		return
-	}
-
-	threadId := uuid.Must(uuid.Parse(request.ThreadId))
-
-	// TODO: How to do proper error handling?
-	messages := m.MessageService.GetMessagesByThreadId(threadId)
-
-	messagesRead := make([]schema.GetMessageResponse, len(messages))
-	for i, message := range messages {
-		messagesRead[i] = schema.GetMessageResponse{
-			ID:       message.ID,
-			ThreadId: message.ThreadID,
-			Content:  message.Content,
-		}
-	}
-	context.JSON(http.StatusOK, messagesRead)
-}
-
 func (m *MessagesHandler) CreateMessage(context *gin.Context) {
 
 	var request schema.CreateMessageRequest
@@ -85,4 +53,36 @@ func (m *MessagesHandler) CreateMessage(context *gin.Context) {
 	//}
 
 	context.JSON(http.StatusCreated, createMessageResponse)
+}
+
+func (m *MessagesHandler) GetMessagesByThreadId(context *gin.Context) {
+
+	var request schema.GetMessageRequest
+
+	err := context.ShouldBindUri(&request)
+	if err != nil {
+		context.JSON(GinInvalidThreadIdError())
+		return
+	}
+
+	err = context.ShouldBind(&request)
+	if err != nil {
+		context.JSON(GinInvalidThreadIdError())
+		return
+	}
+
+	threadId := uuid.Must(uuid.Parse(request.ThreadId))
+
+	// TODO: How to do proper error handling?
+	messages := m.MessageService.GetMessagesByThreadId(threadId)
+
+	messagesRead := make([]schema.GetMessageResponse, len(messages))
+	for i, message := range messages {
+		messagesRead[i] = schema.GetMessageResponse{
+			ID:       message.ID,
+			ThreadId: message.ThreadID,
+			Content:  message.Content,
+		}
+	}
+	context.JSON(http.StatusOK, messagesRead)
 }
