@@ -8,7 +8,7 @@ import (
 
 type Message struct {
 	ID       uuid.UUID
-	ThreadId uuid.UUID
+	ThreadID uuid.UUID
 	Content  string
 
 	CreatedAt time.Time
