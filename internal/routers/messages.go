@@ -20,22 +20,22 @@ func NewMessagesHandler(messageService *services.MessageService) *MessagesHandle
 func (m *MessagesHandler) CreateMessage(context *gin.Context) {
 	/* Create a new message in a thread */
 	var request schema.CreateMessageRequest
-	err := context.ShouldBindUri(&request)
+
+	// We ignore the first command since it always returns an error (the id is not present yet)
+	// Checking the error in the second step is sufficient.
+	// https://github.com/gin-gonic/gin/issues/2758
+	err := context.ShouldBind(&request)
+	err = context.ShouldBindUri(&request)
 	if err != nil {
+		//	// TODO: Add fine grained error handling.
+		//	//       - Raise an error if the thread id is missing in the URI.
+		//	//       - Raise an error if the body is invalid.
+		//	context.JSON(GinInvalidThreadIDError())
 		context.JSON(GinInvalidThreadIDError())
 		return
 	}
 
 	threadID := uuid.Must(uuid.Parse(request.ThreadID))
-
-	err = context.ShouldBind(&request)
-	if err != nil {
-		// TODO: Add fine grained error handling.
-		//       - Raise an error if the thread id is missing in the URI.
-		//       - Raise an error if the body is invalid.
-		context.JSON(GinInvalidThreadIDError())
-		return
-	}
 
 	domainMessage, err := m.MessageService.CreateMessage(request)
 	if err != nil {
@@ -93,12 +93,6 @@ func (m *MessagesHandler) GetMessagesByThreadID(context *gin.Context) {
 	var request schema.GetMessagesRequest
 
 	err := context.ShouldBindUri(&request)
-	if err != nil {
-		context.JSON(GinInvalidThreadIDError())
-		return
-	}
-
-	err = context.ShouldBind(&request)
 	if err != nil {
 		context.JSON(GinInvalidThreadIDError())
 		return

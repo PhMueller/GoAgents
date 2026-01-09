@@ -10,7 +10,7 @@ type CreateMessageRequest struct {
 	/* Input object for the POST /threads/:thread_id/messages endpoint */
 
 	// ThreadID comes from the path parameter
-	ThreadID string `form:"thread_id" binding:"required,isStringValidUUID"`
+	ThreadID string `uri:"thread_id" binding:"required,isStringValidUUID"`
 	Content  string `json:"content" binding:"required"`
 }
 
@@ -18,15 +18,15 @@ type GetMessageRequest struct {
 	/* Input object for the GET /threads/:thread_id/messages/:message_id endpoint */
 
 	// ThreadID comes from the path parameter
-	ThreadID  string `form:"thread_id" binding:"required,isStringValidUUID"`
-	MessageID string `form:"message_id" binding:"required,isStringValidUUID"`
+	ThreadID  string `uri:"thread_id" binding:"required,isStringValidUUID"`
+	MessageID string `uri:"message_id" binding:"required,isStringValidUUID"`
 }
 
 type GetMessagesRequest struct {
 	/* Input object for the GET /threads/:thread_id/messages endpoint */
 
 	// ThreadID comes from the path parameter
-	ThreadID string `form:"thread_id" binding:"required,isStringValidUUID"`
+	ThreadID string `uri:"thread_id" binding:"required,isStringValidUUID"`
 }
 
 type MessageResponse struct {

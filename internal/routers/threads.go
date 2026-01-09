@@ -60,11 +60,6 @@ func (t *ThreadsHandler) GetThreadByID(context *gin.Context) {
 		//}
 	}
 
-	if err := context.ShouldBind(&getThreadRequest); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	// We have validated that the id is a valid uuid in the schema binding step, so we can safely parse it here.
 	threadID := uuid.Must(uuid.Parse(getThreadRequest.ID))
 
@@ -99,14 +94,9 @@ func (t *ThreadsHandler) GetThreadsInfo(context *gin.Context) {
 		return
 	}
 
-	if err := context.ShouldBindUri(&request); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	domainThreads := t.ThreadService.GetThreadsInfo()
 
-	threadsInfoResponseItems := make([]schema.ThreadResponse, 0, len(domainThreads))
+	threadsInfoResponseItems := make([]schema.ThreadResponse, len(domainThreads))
 	for i, domainThread := range domainThreads {
 		threadResponse := schema.ThreadResponse{
 			ID:        domainThread.ID,
