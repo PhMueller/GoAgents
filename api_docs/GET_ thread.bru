@@ -1,0 +1,11 @@
+meta {
+  name: GET thread by ID
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{URL}}/threads/{{__thread_id}}
+  body: none
+  auth: inherit
+}

@@ -1,11 +1,11 @@
 meta {
   name: GET messages in thread
   type: http
-  seq: 4
+  seq: 6
 }
 
 get {
-  url: {{URL}}/messages/:thread_id
+  url: {{URL}}/threads/:thread_id/messages
   body: none
   auth: inherit
 }

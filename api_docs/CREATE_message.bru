@@ -1,11 +1,11 @@
 meta {
   name: CREATE message in thread
   type: http
-  seq: 3
+  seq: 5
 }
 
 post {
-  url: {{URL}}/messages/:thread_id
+  url: {{URL}}/threads/:thread_id/messages
   body: json
   auth: inherit
 }
