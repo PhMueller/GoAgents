@@ -5,21 +5,26 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Message struct {
-	Pk        int64              `json:"pk"`
-	ID        uuid.UUID          `json:"id"`
-	ThreadID  uuid.UUID          `json:"thread_id"`
-	Content   string             `json:"content"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Pk        int64      `json:"pk"`
+	ID        uuid.UUID  `json:"id"`
+	ThreadID  uuid.UUID  `json:"thread_id"`
+	Content   string     `json:"content"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }
 
 type Thread struct {
-	Pk        int64              `json:"pk"`
-	ID        uuid.UUID          `json:"id"`
-	Title     *string            `json:"title"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Pk        int64      `json:"pk"`
+	ID        uuid.UUID  `json:"id"`
+	Title     *string    `json:"title"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }

@@ -20,6 +20,7 @@ type Querier interface {
 	GetMessages(ctx context.Context, id uuid.UUID) ([]Message, error)
 	GetMessagesByThreadId(ctx context.Context, threadID uuid.UUID) ([]Message, error)
 	GetThreadById(ctx context.Context, id uuid.UUID) (Thread, error)
+	ListThreads(ctx context.Context) ([]Thread, error)
 }
 
 var _ Querier = (*Queries)(nil)

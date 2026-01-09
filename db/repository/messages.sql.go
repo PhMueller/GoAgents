@@ -12,7 +12,7 @@ import (
 )
 
 const createMessage = `-- name: CreateMessage :one
-INSERT INTO messages (thread_id, content) VALUES ($1, $2) RETURNING pk, id, thread_id, content, created_at
+INSERT INTO messages (thread_id, content) VALUES ($1, $2) RETURNING pk, id, thread_id, content, created_at, updated_at, deleted_at
 `
 
 type CreateMessageParams struct {
@@ -29,12 +29,14 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 		&i.ThreadID,
 		&i.Content,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const deleteMessage = `-- name: DeleteMessage :one
-DELETE FROM messages WHERE id = $1 RETURNING pk, id, thread_id, content, created_at
+DELETE FROM messages WHERE id = $1 RETURNING pk, id, thread_id, content, created_at, updated_at, deleted_at
 `
 
 func (q *Queries) DeleteMessage(ctx context.Context, id uuid.UUID) (Message, error) {
@@ -46,12 +48,14 @@ func (q *Queries) DeleteMessage(ctx context.Context, id uuid.UUID) (Message, err
 		&i.ThreadID,
 		&i.Content,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getMessage = `-- name: GetMessage :one
-SELECT pk, id, thread_id, content, created_at FROM messages WHERE id = $1
+SELECT pk, id, thread_id, content, created_at, updated_at, deleted_at FROM messages WHERE id = $1
 `
 
 func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (Message, error) {
@@ -63,12 +67,14 @@ func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (Message, error)
 		&i.ThreadID,
 		&i.Content,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getMessageByMessageId = `-- name: GetMessageByMessageId :one
-SELECT pk, id, thread_id, content, created_at FROM messages WHERE id = $1
+SELECT pk, id, thread_id, content, created_at, updated_at, deleted_at FROM messages WHERE id = $1
 `
 
 func (q *Queries) GetMessageByMessageId(ctx context.Context, id uuid.UUID) (Message, error) {
@@ -80,12 +86,14 @@ func (q *Queries) GetMessageByMessageId(ctx context.Context, id uuid.UUID) (Mess
 		&i.ThreadID,
 		&i.Content,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getMessages = `-- name: GetMessages :many
-SELECT pk, id, thread_id, content, created_at FROM messages WHERE id in ($1) ORDER BY id
+SELECT pk, id, thread_id, content, created_at, updated_at, deleted_at FROM messages WHERE id in ($1) ORDER BY id
 `
 
 func (q *Queries) GetMessages(ctx context.Context, id uuid.UUID) ([]Message, error) {
@@ -103,6 +111,8 @@ func (q *Queries) GetMessages(ctx context.Context, id uuid.UUID) ([]Message, err
 			&i.ThreadID,
 			&i.Content,
 			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -115,7 +125,7 @@ func (q *Queries) GetMessages(ctx context.Context, id uuid.UUID) ([]Message, err
 }
 
 const getMessagesByThreadId = `-- name: GetMessagesByThreadId :many
-SELECT pk, id, thread_id, content, created_at FROM messages WHERE thread_id = $1 ORDER BY id
+SELECT pk, id, thread_id, content, created_at, updated_at, deleted_at FROM messages WHERE thread_id = $1 ORDER BY id
 `
 
 func (q *Queries) GetMessagesByThreadId(ctx context.Context, threadID uuid.UUID) ([]Message, error) {
@@ -133,6 +143,8 @@ func (q *Queries) GetMessagesByThreadId(ctx context.Context, threadID uuid.UUID)
 			&i.ThreadID,
 			&i.Content,
 			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}

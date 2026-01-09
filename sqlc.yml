@@ -46,5 +46,19 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+
+          # Override the timestamptz type as well. Without this override, sqlc would map timestamptz to
+          # pgtype.Timestamptz and would not use the "nullable as pointer" option, set above.
+          # https://github.com/sqlc-dev/sqlc/issues/814#issuecomment-3042290683
+          - db_type: "timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
     rules:
       - sqlc/db-prepare

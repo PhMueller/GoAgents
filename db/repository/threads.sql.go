@@ -12,7 +12,7 @@ import (
 )
 
 const createThread = `-- name: CreateThread :one
-INSERT INTO threads (title) VALUES ( $1) RETURNING pk, id, title, created_at
+INSERT INTO threads (title) VALUES ( $1) RETURNING pk, id, title, created_at, updated_at, deleted_at
 `
 
 func (q *Queries) CreateThread(ctx context.Context, title *string) (Thread, error) {
@@ -23,12 +23,14 @@ func (q *Queries) CreateThread(ctx context.Context, title *string) (Thread, erro
 		&i.ID,
 		&i.Title,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const deleteThread = `-- name: DeleteThread :one
-DELETE FROM threads WHERE id = $1 RETURNING pk, id, title, created_at
+DELETE FROM threads WHERE id = $1 RETURNING pk, id, title, created_at, updated_at, deleted_at
 `
 
 func (q *Queries) DeleteThread(ctx context.Context, id uuid.UUID) (Thread, error) {
@@ -39,12 +41,14 @@ func (q *Queries) DeleteThread(ctx context.Context, id uuid.UUID) (Thread, error
 		&i.ID,
 		&i.Title,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getThreadById = `-- name: GetThreadById :one
-SELECT pk, id, title, created_at FROM threads WHERE id = $1
+SELECT pk, id, title, created_at, updated_at, deleted_at FROM threads WHERE id = $1
 `
 
 func (q *Queries) GetThreadById(ctx context.Context, id uuid.UUID) (Thread, error) {
@@ -55,6 +59,39 @@ func (q *Queries) GetThreadById(ctx context.Context, id uuid.UUID) (Thread, erro
 		&i.ID,
 		&i.Title,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const listThreads = `-- name: ListThreads :many
+SELECT pk, id, title, created_at, updated_at, deleted_at FROM threads t order by t.pk
+`
+
+func (q *Queries) ListThreads(ctx context.Context) ([]Thread, error) {
+	rows, err := q.db.Query(ctx, listThreads)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Thread
+	for rows.Next() {
+		var i Thread
+		if err := rows.Scan(
+			&i.Pk,
+			&i.ID,
+			&i.Title,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
