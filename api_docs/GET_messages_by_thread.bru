@@ -13,3 +13,7 @@ get {
 params:path {
   thread_id: {{__thread_id}}
 }
+
+script:post-response {
+  bru.setVar(__message_id, res.getBody()["messages"][0]["id"])
+}
