@@ -20,6 +20,12 @@ func NewServer() *Server {
 }
 
 func (s *Server) AddValidators() {
+	/* Validators can be added to the validators engine (validators package)
+
+	These are functions that are referenced in the `binding` tags in the schema definitions.
+
+	https://github.com/go-playground/validator/blob/master/_examples/struct-level/main.go
+	*/
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		_ = v.RegisterValidation("isStringValidUUID", schema.IsStringValidUUID)
 	}
