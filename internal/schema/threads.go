@@ -1,21 +1,42 @@
 package schema
 
 type CreateThreadRequest struct {
-	// Optional title for the thread
-	Title string `json:"title"`
+	/* Input object for the POST /threads endpoint */
+	Title *string `json:"title"`
 }
 
 type GetThreadRequest struct {
+	/* Input object for the GET /threads/:thread_id endpoint */
+
 	// ID of the thread to retrieve, extracted from the path
 	// TODO: gin does not support uuid binding. Need to validate manually in handler
 	// https://github.com/gin-gonic/gin/pull/3933
 	ID string `uri:"thread_id" binding:"required,isStringValidUUID"`
 }
 
+type GetThreadsRequest struct {
+	/* Input object for the GET /threads endpoint
+
+	Supports optionally pagination via cursor and size parameters.
+	*/
+	Cursor *string `form:"cursor"`
+	Size   *int    `form:"size"`
+}
+
 type ThreadResponse struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
+	/* Base Response object for thread-related endpoints */
+	ID    string  `json:"id"`
+	Title *string `json:"title"`
 }
 
 type CreateThreadResponse = ThreadResponse
 type GetThreadResponse = ThreadResponse
+
+type GetThreadsResponse struct {
+	/* Response object for the GET /threads endpoint.
+
+	This object contains a list of threads and a cursor for pagination.
+	*/
+	Items  []ThreadResponse `json:"threads"`
+	Cursor *string          `json:"cursor,omitempty"`
+}

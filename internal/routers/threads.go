@@ -24,21 +24,15 @@ func (t *ThreadsHandler) CreateThread(context *gin.Context) {
 		return
 	}
 
-	createdThread, err := t.ThreadService.CreateThread(createThreadRequest)
+	domainThread, err := t.ThreadService.CreateThread(createThreadRequest)
 	if err != nil {
 		context.JSON(GinInternalServiceError())
 		return
 	}
 
-	// Cast the repository object to schema.ThreadResponse
-	title := ""
-	if createdThread.Title != nil {
-		title = *createdThread.Title
-	}
-
-	threadResponse := schema.ThreadResponse{
-		ID:    createdThread.ID.String(),
-		Title: title,
+	threadResponse := schema.CreateThreadResponse{
+		ID:    domainThread.ID,
+		Title: domainThread.Title,
 	}
 
 	context.JSON(http.StatusOK, threadResponse)
@@ -47,9 +41,10 @@ func (t *ThreadsHandler) CreateThread(context *gin.Context) {
 
 func (t *ThreadsHandler) GetThreadById(context *gin.Context) {
 
-	var request schema.GetThreadRequest
+	var getThreadRequest schema.GetThreadRequest
 
-	if err := context.ShouldBindUri(&request); err != nil {
+	// We use the validator package to check for errors in the path parameters. They can be handled separately.
+	if err := context.ShouldBindUri(&getThreadRequest); err != nil {
 		//err, ok := err.(validator.ValidationErrors)
 		//if ok {
 		//	if err[0].Field() == "ID" {
@@ -62,27 +57,23 @@ func (t *ThreadsHandler) GetThreadById(context *gin.Context) {
 		//}
 	}
 
-	if err := context.ShouldBind(&request); err != nil {
+	if err := context.ShouldBind(&getThreadRequest); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	threadId := uuid.Must(uuid.Parse(request.ID))
+	// We have validated that the id is a valid uuid in the schema binding step, so we can safely parse it here.
+	threadId := uuid.Must(uuid.Parse(getThreadRequest.ID))
 
-	thread, err := t.ThreadService.GetThreadById(threadId)
+	domainThread, err := t.ThreadService.GetThreadById(threadId)
 	if err != nil {
 		context.JSON(GinInternalServiceError())
 		return
 	}
 
-	title := ""
-	if thread.Title != nil {
-		title = *thread.Title
-	}
-
-	threadResponse := schema.ThreadResponse{
-		ID:    thread.ID.String(),
-		Title: title,
+	threadResponse := schema.GetThreadResponse{
+		ID:    domainThread.ID,
+		Title: domainThread.Title,
 	}
 
 	context.JSON(http.StatusOK, threadResponse)

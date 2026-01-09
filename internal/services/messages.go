@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"examples.com/assistants/db/repository"
+	"examples.com/assistants/internal/domain"
 	"examples.com/assistants/internal/schema"
 	"github.com/google/uuid"
 )
@@ -15,6 +16,7 @@ type MessageService struct {
 }
 
 func NewMessageService(ctx context.Context, queries repository.Queries) *MessageService {
+	/* Initialize MessageService */
 	messageService := MessageService{
 		ctx:     ctx,
 		queries: queries,
@@ -23,30 +25,39 @@ func NewMessageService(ctx context.Context, queries repository.Queries) *Message
 	return &messageService
 }
 
-func (m *MessageService) GetMessageByMessageId(messageId uuid.UUID) repository.Message {
-	message, err := m.queries.GetMessageByMessageId(m.ctx, messageId)
+func (m *MessageService) GetMessageByMessageId(messageId uuid.UUID) domain.Message {
+	/* Retrieve a message by its id */
+	dbMessage, err := m.queries.GetMessageByMessageId(m.ctx, messageId)
 	if err != nil {
 		// TODO: raise proper error
-		return repository.Message{}
+		return domain.Message{}
 	}
-	return message
+	domainMessage := castRepositoryMessageToDomainMessage(dbMessage)
+	return domainMessage
 }
 
-func (m *MessageService) GetMessagesByThreadId(threadId uuid.UUID) []repository.Message {
-	messages, err := m.queries.GetMessagesByThreadId(m.ctx, threadId)
+func (m *MessageService) GetMessagesByThreadId(threadId uuid.UUID) []domain.Message {
+	/* Retrieve all messages in a thread */
+	dbMessages, err := m.queries.GetMessagesByThreadId(m.ctx, threadId)
 	if err != nil {
 		// TODO: raise proper error
 		log.Println(err)
-		return []repository.Message{}
+		return []domain.Message{}
 	}
-	if messages == nil {
-		messages = []repository.Message{}
+	if dbMessages == nil {
+		return []domain.Message{}
 	}
-	return messages
+
+	domainMessages := make([]domain.Message, len(dbMessages))
+	for i, msg := range dbMessages {
+		domainMessages[i] = castRepositoryMessageToDomainMessage(msg)
+	}
+
+	return domainMessages
 }
 
-func (m *MessageService) CreateMessage(message schema.CreateMessageRequest) (repository.Message, error) {
-
+func (m *MessageService) CreateMessage(message schema.CreateMessageRequest) (domain.Message, error) {
+	/* Create a new message in a thread */
 	threadID := uuid.Must(uuid.Parse(message.ThreadId))
 
 	createMessageParams := repository.CreateMessageParams{
@@ -55,5 +66,20 @@ func (m *MessageService) CreateMessage(message schema.CreateMessageRequest) (rep
 	}
 
 	dbMessage, err := m.queries.CreateMessage(m.ctx, createMessageParams)
-	return dbMessage, err
+	domainMessage := castRepositoryMessageToDomainMessage(dbMessage)
+	return domainMessage, err
+}
+
+func castRepositoryMessageToDomainMessage(dbMessage repository.Message) domain.Message {
+	/* Helper function: Cast the database object to the domain object */
+	domainMessage := domain.Message{
+		ID:       dbMessage.ID,
+		ThreadId: dbMessage.ThreadID,
+		Content:  dbMessage.Content,
+
+		CreatedAt: dbMessage.CreatedAt,
+		UpdatedAt: dbMessage.UpdatedAt,
+		DeletedAt: dbMessage.DeletedAt,
+	}
+	return domainMessage
 }
