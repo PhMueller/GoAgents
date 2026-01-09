@@ -31,8 +31,11 @@ func (t *ThreadsHandler) CreateThread(context *gin.Context) {
 	}
 
 	threadResponse := schema.CreateThreadResponse{
-		ID:    domainThread.ID,
-		Title: domainThread.Title,
+		ID:        domainThread.ID,
+		Title:     domainThread.Title,
+		CreatedAt: domainThread.CreatedAt,
+		UpdatedAt: domainThread.UpdatedAt,
+		DeletedAt: domainThread.DeletedAt,
 	}
 
 	context.JSON(http.StatusOK, threadResponse)
@@ -72,8 +75,11 @@ func (t *ThreadsHandler) GetThreadByID(context *gin.Context) {
 	}
 
 	threadResponse := schema.GetThreadResponse{
-		ID:    domainThread.ID,
-		Title: domainThread.Title,
+		ID:        domainThread.ID,
+		Title:     domainThread.Title,
+		CreatedAt: domainThread.CreatedAt,
+		UpdatedAt: domainThread.UpdatedAt,
+		DeletedAt: domainThread.DeletedAt,
 	}
 
 	context.JSON(http.StatusOK, threadResponse)

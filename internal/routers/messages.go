@@ -44,9 +44,12 @@ func (m *MessagesHandler) CreateMessage(context *gin.Context) {
 	}
 
 	responseMessage := schema.CreateMessageResponse{
-		ID:       domainMessage.ID,
-		ThreadID: threadID,
-		Content:  domainMessage.Content,
+		ID:        domainMessage.ID,
+		ThreadID:  threadID,
+		Content:   domainMessage.Content,
+		CreatedAt: domainMessage.CreatedAt,
+		UpdatedAt: domainMessage.UpdatedAt,
+		DeletedAt: domainMessage.DeletedAt,
 	}
 
 	context.JSON(http.StatusCreated, responseMessage)
@@ -109,9 +112,12 @@ func (m *MessagesHandler) GetMessagesByThreadID(context *gin.Context) {
 	messageResponseItems := make([]schema.GetMessageResponse, len(domainMessages))
 	for i, message := range domainMessages {
 		messageResponseItems[i] = schema.GetMessageResponse{
-			ID:       message.ID,
-			ThreadID: message.ThreadID,
-			Content:  message.Content,
+			ID:        message.ID,
+			ThreadID:  message.ThreadID,
+			Content:   message.Content,
+			CreatedAt: message.CreatedAt,
+			UpdatedAt: message.UpdatedAt,
+			DeletedAt: message.DeletedAt,
 		}
 	}
 
