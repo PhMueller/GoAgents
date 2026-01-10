@@ -32,3 +32,12 @@ generate-repository-code:
 # Needs to be executed from the assistants directory
 test:
 	go test -v ./...
+
+test-coverage:
+	go test -coverprofile cover.out ./... \
+	&& go tool cover -html cover.out -o cover.html
+
+test-coverage-show:
+	go test -coverprofile cover.out ./... \
+	&& go tool cover -html cover.out -o cover.html \
+	&& open cover.html
