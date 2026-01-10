@@ -1,7 +1,11 @@
 package schema
 
 /* Unit tests for the Threads schema
-We test for the CreateThreadRequest, GetThreadRequest, GetThreadsInfoRequest that invalid inputs are causing a validation error.
+
+We test for the *Request - schema that invalid inputs are causing a validation error.
+
+We do not test the *Response objects as they do not have validation rules.
+They are tested indirectly via integration tests and unit test on the handler.
 */
 
 import (
@@ -11,8 +15,44 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func TestRequestObjectsValidateUUID(t *testing.T) {
-	/* Test all Thread Schemas that have a requested UUID. */
+func TestCreateThreadRequest_Validation(t *testing.T) {
+	bindingValidate, _ := binding.Validator.Engine().(*validator.Validate)
+	// CreateThreadRequest hat keine required- oder UUID-Felder, nur optionale Title
+	testCases := []struct {
+		name    string
+		input   CreateThreadRequest
+		wantErr bool
+	}{
+		{
+			name:    "Empty Title (no error)",
+			input:   CreateThreadRequest{},
+			wantErr: false,
+		},
+		{
+			name:    "Nil Title (no error)",
+			input:   CreateThreadRequest{Title: nil},
+			wantErr: false,
+		},
+		{
+			name:    "Non-empty Title (no error)",
+			input:   CreateThreadRequest{Title: ptrString("")},
+			wantErr: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := bindingValidate.Struct(tc.input)
+			if tc.wantErr && err == nil {
+				t.Errorf("Expected validation error for %s, got nil", tc.name)
+			}
+			if !tc.wantErr && err != nil {
+				t.Errorf("Did not expect validation error for %s, got: %v", tc.name, err)
+			}
+		})
+	}
+}
+
+func TestGetThreadRequest_Validation(t *testing.T) {
 	bindingValidate, _ := binding.Validator.Engine().(*validator.Validate)
 	_ = bindingValidate.RegisterValidation("isStringValidUUID", IsStringValidUUID)
 
@@ -37,91 +77,55 @@ func TestRequestObjectsValidateUUID(t *testing.T) {
 			wantErr: false,
 		},
 	}
-
 	for _, tc := range testCases {
-		t.Run(
-			tc.name,
-			func(t *testing.T) {
-				err := bindingValidate.Struct(tc.input)
-				if tc.wantErr && err == nil {
-					t.Errorf("Expected validation error for %s, got nil", tc.name)
-				}
-				if !tc.wantErr && err != nil {
-					t.Errorf("Did not expect validation error for %s, got: %v", tc.name, err)
-				}
-			},
-		)
+		t.Run(tc.name, func(t *testing.T) {
+			err := bindingValidate.Struct(tc.input)
+			if tc.wantErr && err == nil {
+				t.Errorf("Expected validation error for %s, got nil", tc.name)
+			}
+			if !tc.wantErr && err != nil {
+				t.Errorf("Did not expect validation error for %s, got: %v", tc.name, err)
+			}
+		})
 	}
 }
 
-func TestRequestObjectsValidateRequired(t *testing.T) {
-	/* Test all Thread Schemas that have a required field. */
-
-	// do not register the isStringValidUUID validator here, to only test the 'required' tag
+func TestGetThreadsInfoRequest_Validation(t *testing.T) {
 	bindingValidate, _ := binding.Validator.Engine().(*validator.Validate)
-	emptyString := ""
 	intValue := 0
 
 	testCases := []struct {
 		name    string
-		input   interface{}
+		input   GetThreadsInfoRequest
 		wantErr bool
 	}{
 		{
-			name:    "GetThreadRequest (error: required ID)",
-			input:   GetThreadRequest{ID: ""},
-			wantErr: true,
-		},
-
-		{
-			name:    "CreateThreadRequest (no error)",
-			input:   CreateThreadRequest{},
-			wantErr: false,
-		},
-
-		{
-			name:    "CreateThreadRequest (no error)",
-			input:   CreateThreadRequest{Title: nil},
-			wantErr: false,
-		},
-
-		{
-			name:    "CreateThreadRequest (no error)",
-			input:   CreateThreadRequest{Title: &emptyString},
-			wantErr: false,
-		},
-
-		{
-			name:    "GetThreadsInfoRequest (no error)",
+			name:    "Empty struct (no error)",
 			input:   GetThreadsInfoRequest{},
 			wantErr: false,
 		},
-
 		{
-			name:    "GetThreadsInfoRequest (no error)",
+			name:    "Nil Cursor and Size (no error)",
 			input:   GetThreadsInfoRequest{Cursor: nil, Size: nil},
 			wantErr: false,
 		},
-
 		{
-			name:    "GetThreadsInfoRequest (no error)",
-			input:   GetThreadsInfoRequest{Cursor: &emptyString, Size: &intValue},
+			name:    "Non-empty Cursor and Size (no error)",
+			input:   GetThreadsInfoRequest{Cursor: ptrString(""), Size: &intValue},
 			wantErr: false,
 		},
 	}
-
 	for _, tc := range testCases {
-		t.Run(
-			tc.name,
-			func(t *testing.T) {
-				err := bindingValidate.Struct(tc.input)
-				if tc.wantErr && err == nil {
-					t.Errorf("Expected validation error for %s, got nil", tc.name)
-				}
-				if !tc.wantErr && err != nil {
-					t.Errorf("Did not expect validation error for %s, got: %v", tc.name, err)
-				}
-			},
-		)
+		t.Run(tc.name, func(t *testing.T) {
+			err := bindingValidate.Struct(tc.input)
+			if tc.wantErr && err == nil {
+				t.Errorf("Expected validation error for %s, got nil", tc.name)
+			}
+			if !tc.wantErr && err != nil {
+				t.Errorf("Did not expect validation error for %s, got: %v", tc.name, err)
+			}
+		})
 	}
 }
+
+func ptrString(s string) *string { return &s }
