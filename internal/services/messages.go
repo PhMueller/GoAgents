@@ -18,19 +18,18 @@ type MessageService struct {
 func NewMessageService(ctx context.Context, queries repository.Querier) *MessageService {
 	/* Initialize MessageService */
 	messageService := MessageService{
-		ctx:     ctx,
 		queries: queries,
 	}
 	log.Println("MessageService initialized")
 	return &messageService
 }
 
-func (m *MessageService) GetMessageByMessageID(messageID uuid.UUID, threadID uuid.UUID) (domain.Message, error) {
+func (m *MessageService) GetMessageByMessageID(context context.Context, messageID uuid.UUID, threadID uuid.UUID) (domain.Message, error) {
 	/* Retrieve a message by its id */
 
 	// TODO: use the thread id to verify that the message belongs to the thread and the user has access to the thread.
 
-	dbMessage, err := m.queries.GetMessageByMessageId(m.ctx, messageID)
+	dbMessage, err := m.queries.GetMessageByMessageId(context, messageID)
 	if err != nil {
 		// TODO: raise proper error
 		return domain.Message{}, err

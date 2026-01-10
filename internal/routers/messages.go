@@ -70,7 +70,7 @@ func (m *MessagesHandler) GetMessageByMessageID(context *gin.Context) {
 	messageID := uuid.Must(uuid.Parse(request.MessageID))
 	threadID := uuid.Must(uuid.Parse(request.ThreadID))
 
-	domainMessage, err := m.MessageService.GetMessageByMessageID(messageID, threadID)
+	domainMessage, err := m.MessageService.GetMessageByMessageID(context, messageID, threadID)
 	if err != nil {
 		context.JSON(GinInternalServiceError())
 		return
