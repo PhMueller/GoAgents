@@ -28,9 +28,10 @@ func main() {
 	queries := repository.New(conn)
 	messageService := services.NewMessageService(ctx, *queries)
 	threadService := services.NewThreadService(ctx, *queries)
+	authService := services.NewAuthService(ctx, *queries)
 
 	s := server.NewServer()
-	s.SetupRoutes(messageService, threadService)
+	s.SetupRoutes(messageService, threadService, authService)
 	s.AddValidators()
 
 	if err := s.Engine.Run("localhost:8080"); err != nil {

@@ -31,10 +31,14 @@ func (s *Server) AddValidators() {
 	}
 }
 
-func (s *Server) SetupRoutes(messagesService *services.MessageService, threadService *services.ThreadService) {
+func (s *Server) SetupRoutes(messagesService *services.MessageService, threadService *services.ThreadService, authService *services.AuthService) {
 	messagesHandler := routers.NewMessagesHandler(messagesService)
 	threadsHandler := routers.NewThreadsHandler(threadService)
+	authHandler := routers.NewAuthHandler(authService)
+	clientHandler := routers.NewClientHandler(authService)
+	clientSessionHandler := routers.NewClientSessionHandler(authService)
 
+	// Client: Chat interactions
 	v1 := s.Engine.Group("/v1")
 
 	threadsRouter := v1.Group("/threads")
@@ -47,4 +51,23 @@ func (s *Server) SetupRoutes(messagesService *services.MessageService, threadSer
 	messagesRouter.GET("", messagesHandler.GetMessagesByThreadID)
 	messagesRouter.GET("/:message_id", messagesHandler.GetMessageByMessageID)
 
+	// Client: Authentication routes
+	authRouter := s.Engine.Group("/auth")
+	authRouter.POST("/token", authHandler.CreateToken)
+
+	// Admin Space: Client and session management
+	adminRouter := s.Engine.Group("/admin")
+
+	clientRouter := adminRouter.Group("/clients")
+	clientRouter.POST("", clientHandler.CreateClient)
+	clientRouter.GET("", clientHandler.GetClients)
+	clientRouter.GET("/:client_id", clientHandler.GetClient)
+	clientRouter.PATCH("/:client_id", clientHandler.UpdateClient)
+	clientRouter.DELETE("/:client_id", clientHandler.DeleteClient)
+
+	clientSessionRouter := clientRouter.Group("/:client_id/sessions")
+	clientSessionRouter.POST("", clientSessionHandler.CreateClientSession)
+	clientSessionRouter.GET("", clientSessionHandler.GetClientSessions)
+	clientSessionRouter.GET("/:session_id", clientSessionHandler.GetClientSession)
+	clientSessionRouter.DELETE("/:session_id", clientSessionHandler.DeleteClientSession)
 }

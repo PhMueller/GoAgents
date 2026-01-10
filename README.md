@@ -13,15 +13,20 @@
 - [ ] Messages
   - [X] Create Message
   - [X] Get Message by ID
-  - [ ] List Messages by Thread ID
+  - [X] Get Messages by Thread ID
 
 - [ ] Error handling improvement
-- [ ] Authorization
+  - [ ] Implement error handling middleware (https://gin-gonic.com/en/docs/examples/error-handling-middleware/)
+- [ ] How to prevent extra parameters in request body?
+- [ ] Authentication and Authorization
+  - [ ] Create a login endpoint (receives a client_id and client_secret, returns jwt as bearer token)
+  - [ ] Define claims: How can do what? (scopes)
+  - [ ] For now create register endpoint (only with admin key reachable) to create a new client (client_id, client_secret, scopes)
+  - [ ] Add authorization middleware to check for valid jwt token with correct scopes.
 - [ ] Rate limiting
 - [ ] Logging
 - [ ] Swagger UI
 - [ ] First try to configure llm 
-- [ ] How to prevent extra parameters in request body?
 
 ## Set up
 
@@ -109,6 +114,64 @@ You need to write them manually.
 
 `golang-migrate` only helps to execute them in a controlled manner and keeps track of which migrations have already 
 been applied to the database.
+
+## Authorization and Authentication
+We plan to implement a client-based authentication and authorization system using JWT tokens.
+
+This feature consists of the following components: 
+
+### Admin: Client Management
+- CRUD operations on /admin/clients.
+- Only accessible with an admin key in header "X-Admin-Key: <admin_key>"
+- Here, we manage the clients with specific scopes.
+
+### Admin Client Session Management
+- CRUD operations on /admin/clients/:client_id/sessions.
+- Only accessible with an admin key in header "X-Admin-Key: <admin_key>"
+- This is an internal endpoint that is developed to fulfill the "API first" principle.
+
+#### Workflow: 
+- The admin has created a client with specific scopes. 
+- The client now calls the /auth/token endpoint. 
+- When the client's request is valid, we create a session for the client.
+- The session contains information about the client, the issued token, expiration date, and scopes.
+
+### Client: Token Management
+- The user calls the /auth/token endpoint with their client_id and client_secret to obtain a JWT token.
+- This token is used to authenticate subsequent requests to the API.
+- A middleware checks the validity of the token, its scopes, and expiration date for each request.
+
+### Architecture and implementation details
+
+Create two tables in db. 
+--> Clients ( client_id, client_secret, scopes, ... )
+--> ClientSessions ( session_id, client_id, issued_at, expires_at, scopes, ... )
+
+Only admin app can create / modify new clients as well as the client sessions. 
+The client app can only request to get a new session by calling /auth/token with valid client_id and client_secret.
+We dont take care of the case that a user creates to many open sessions yet. 
+
+### Authorization Workflow: 
+
+Middleware checks for valid token, scopes, and expiration date. Some endpoints have different scopes(?)
+
+- Prerequisite: There exists a client_id, client_secret in the db. 
+- Client calls /auth/token with client_id and client_secret in body.
+- Server checks for valid client_id and client_secret in db.
+- Server creates a new session in client_sessions table with issued_at, expires_at, scopes.
+- Server creates a JWT token with claims: client_id, issued_at, expires_at, scopes
+- JWT is signed with server's private key.
+- Server returns token to client.
+- Client sends in header "Authorization: Bearer <token>"
+- Server extracts token from header.
+- Server verifies token signature with server's public key.
+- Server Middleware checks for expiration date and scopes.
+- Request is processed if token is valid.
+
+Open questions: 
+- how to allow different clients to interact with data? 
+- E.g. client A can only access threads it created. Client B can access all threads.
+- --> Define claims in token accordingly
 
 ## Validation
 
