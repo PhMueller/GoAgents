@@ -13,8 +13,7 @@ type GetThreadRequest struct {
 	// ID of the thread to retrieve, extracted from the path
 	// TODO: gin does not support uuid binding. Need to validate manually in handler
 	// https://github.com/gin-gonic/gin/pull/3933
-	// TODO: how to test the binding validation? we cannot use validator in the test with binding!
-	ID string `uri:"thread_id" validate:"required,isStringValidUUID" binding:"required,isStringValidUUID"`
+	ID string `uri:"thread_id" binding:"required,isStringValidUUID"`
 }
 
 type GetThreadsInfoRequest struct {
