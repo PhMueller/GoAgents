@@ -178,6 +178,14 @@ Open questions:
 We use the `go-playground/validator` package for validation of incoming requests.
 Validation tags are added to the request structs in the `presentation` layer.
 
+
+## Testing
+
+### Integration tests
+For that we would need to mock our db! An example using `mockgen` and `sqlc`. 
+https://medium.com/@emmyvera01/enhancing-http-api-testing-in-golang-with-a-mock-db-harnessing-the-power-of-mockgen-b509dc6b7e75
+
+
 ## Further reading
 
 Very nice tutorial on Golang:

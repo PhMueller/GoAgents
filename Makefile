@@ -27,3 +27,8 @@ migrate-force\:%:
 # It uses the sqlc.yaml configuration file and the migrations in the db folder.
 generate-repository-code:
 	sqlc generate
+
+
+# Needs to be executed from the assistants directory
+test:
+	go test -v ./...
