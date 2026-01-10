@@ -13,6 +13,8 @@ var IsStringValidUUID validator.Func = func(fl validator.FieldLevel) bool {
 
 	in the `ShouldBind` call an exception is raised if the validation fails.
 	the `tag` is then the name of the validation
+
+	This function is tested in the schema that use the function.
 	*/
 	value, ok := fl.Field().Interface().(string)
 	if ok {

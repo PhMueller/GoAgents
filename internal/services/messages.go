@@ -12,10 +12,10 @@ import (
 
 type MessageService struct {
 	ctx     context.Context
-	queries repository.Queries
+	queries repository.Querier
 }
 
-func NewMessageService(ctx context.Context, queries repository.Queries) *MessageService {
+func NewMessageService(ctx context.Context, queries repository.Querier) *MessageService {
 	/* Initialize MessageService */
 	messageService := MessageService{
 		ctx:     ctx,
