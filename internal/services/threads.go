@@ -10,41 +10,39 @@ import (
 )
 
 type ThreadService struct {
-	ctx     context.Context
-	queries repository.Queries
+	queries repository.Querier
 }
 
-func NewThreadService(ctx context.Context, queries repository.Queries) *ThreadService {
+func NewThreadService(queries repository.Querier) *ThreadService {
 	/* Initialize ThreadService */
 	threadService := ThreadService{
-		ctx:     ctx,
 		queries: queries,
 	}
 	return &threadService
 }
 
-func (t *ThreadService) CreateThread(threadCreate schema.CreateThreadRequest) (domain.Thread, error) {
+func (t *ThreadService) CreateThread(context context.Context, threadCreate schema.CreateThreadRequest) (domain.Thread, error) {
 	/* Create a new thread */
-	dbThread, err := t.queries.CreateThread(t.ctx, threadCreate.Title)
+	dbThread, err := t.queries.CreateThread(context, threadCreate.Title)
 	domainThread := castRepositoryThreadToDomainThread(dbThread)
 	return domainThread, err
 }
 
-func (t *ThreadService) GetThreadByID(threadID uuid.UUID) (domain.Thread, error) {
+func (t *ThreadService) GetThreadByID(context context.Context, threadID uuid.UUID) (domain.Thread, error) {
 	/* Retrieve a thread by its id. */
-	dbThread, err := t.queries.GetThreadById(t.ctx, threadID)
+	dbThread, err := t.queries.GetThreadById(context, threadID)
 	domainThread := castRepositoryThreadToDomainThread(dbThread)
 	return domainThread, err
 }
 
-func (t *ThreadService) GetThreadsInfo() []domain.Thread {
+func (t *ThreadService) GetThreadsInfo(context context.Context) []domain.Thread {
 	/* Get information of all threads - paginated
 
 	# TODO:
 	- add pagination parameters
 	- add filter on user
 	*/
-	dbThreads, err := t.queries.ListThreads(t.ctx)
+	dbThreads, err := t.queries.ListThreads(context)
 	if err != nil {
 		return []domain.Thread{}
 	}

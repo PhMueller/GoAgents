@@ -11,11 +11,11 @@ import (
 )
 
 type MessageService struct {
-	ctx     context.Context
+	// TODO: check if a pointer to queries can be provided, to avoid copying the whole struct
 	queries repository.Querier
 }
 
-func NewMessageService(ctx context.Context, queries repository.Querier) *MessageService {
+func NewMessageService(queries repository.Querier) *MessageService {
 	/* Initialize MessageService */
 	messageService := MessageService{
 		queries: queries,
@@ -39,9 +39,9 @@ func (m *MessageService) GetMessageByMessageID(context context.Context, messageI
 	return domainMessage, nil
 }
 
-func (m *MessageService) GetMessagesByThreadID(threadID uuid.UUID) []domain.Message {
+func (m *MessageService) GetMessagesByThreadID(context context.Context, threadID uuid.UUID) []domain.Message {
 	/* Retrieve all messages in a thread */
-	dbMessages, err := m.queries.GetMessagesByThreadId(m.ctx, threadID)
+	dbMessages, err := m.queries.GetMessagesByThreadId(context, threadID)
 	if err != nil {
 		// TODO: raise proper error
 		log.Println(err)
@@ -59,7 +59,7 @@ func (m *MessageService) GetMessagesByThreadID(threadID uuid.UUID) []domain.Mess
 	return domainMessages
 }
 
-func (m *MessageService) CreateMessage(message schema.CreateMessageRequest) (domain.Message, error) {
+func (m *MessageService) CreateMessage(context context.Context, message schema.CreateMessageRequest) (domain.Message, error) {
 	/* Create a new message in a thread */
 	threadID := uuid.Must(uuid.Parse(message.ThreadID))
 
@@ -68,7 +68,7 @@ func (m *MessageService) CreateMessage(message schema.CreateMessageRequest) (dom
 		Content:  message.Content,
 	}
 
-	dbMessage, err := m.queries.CreateMessage(m.ctx, createMessageParams)
+	dbMessage, err := m.queries.CreateMessage(context, createMessageParams)
 	domainMessage := castRepositoryMessageToDomainMessage(dbMessage)
 	return domainMessage, err
 }

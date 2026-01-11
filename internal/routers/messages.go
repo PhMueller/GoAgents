@@ -37,7 +37,7 @@ func (m *MessagesHandler) CreateMessage(context *gin.Context) {
 
 	threadID := uuid.Must(uuid.Parse(request.ThreadID))
 
-	domainMessage, err := m.MessageService.CreateMessage(request)
+	domainMessage, err := m.MessageService.CreateMessage(context, request)
 	if err != nil {
 		context.JSON(GinInternalServiceError())
 		return
@@ -101,7 +101,7 @@ func (m *MessagesHandler) GetMessagesByThreadID(context *gin.Context) {
 	threadID := uuid.Must(uuid.Parse(request.ThreadID))
 
 	// TODO: How to do proper error handling?
-	domainMessages := m.MessageService.GetMessagesByThreadID(threadID)
+	domainMessages := m.MessageService.GetMessagesByThreadID(context, threadID)
 
 	messageResponseItems := make([]schema.GetMessageResponse, len(domainMessages))
 	for i, message := range domainMessages {

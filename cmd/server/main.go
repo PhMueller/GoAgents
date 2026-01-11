@@ -26,9 +26,9 @@ func main() {
 	}
 
 	queries := repository.New(conn)
-	messageService := services.NewMessageService(ctx, *queries)
-	threadService := services.NewThreadService(ctx, *queries)
-	authService := services.NewAuthService(ctx, *queries)
+	messageService := services.NewMessageService(queries)
+	threadService := services.NewThreadService(queries)
+	authService := services.NewAuthService(queries)
 
 	s := server.NewServer()
 	s.SetupRoutes(messageService, threadService, authService)
