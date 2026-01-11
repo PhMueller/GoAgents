@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"examples.com/assistants/db/repository"
+	"examples.com/assistants/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -71,45 +72,57 @@ func (m *MockMessagesQueries) GetMessageByMessageId(ctx context.Context, message
 }
 
 func TestGetMessageByMessageID(t *testing.T) {
-	// Arrange
-	mockMessage := repository.Message{
-		ID:        uuid.New(),
-		ThreadID:  uuid.New(),
-		Content:   "Test message",
-		CreatedAt: time.Now(),
-	}
-	mockQueries := NewMockMessagesQueries(mockMessage, nil)
-
-	// Act
-	messageService := &MessageService{
-		ctx:     context.Background(),
-		queries: mockQueries,
-	}
-
-	domainMessage, err := messageService.GetMessageByMessageID(mockMessage.ID, mockMessage.ThreadID)
-
-	// Assert
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+	/* Test the messageService's GetMessageByMessageID method */
+	testCases := []struct {
+		name        string
+		mockMessage repository.Message
+		mockError   error
+	}{
+		{
+			name: "Successful retrieval of message by MessageID",
+			mockMessage: repository.Message{
+				ID:        uuid.New(),
+				ThreadID:  uuid.New(),
+				Content:   "Test message",
+				CreatedAt: time.Now(),
+			},
+			mockError: nil,
+		},
 	}
 
-	if domainMessage.ID != mockMessage.ID {
-		t.Errorf("Expected message ID %v, got %v", mockMessage.ID, domainMessage.ID)
-	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Arrange
+			mockContext := context.Background()
 
-	if domainMessage.ThreadID != mockMessage.ThreadID {
-		t.Errorf("Expected ThreadID %v, got %v", mockMessage.ThreadID, domainMessage.ThreadID)
-	}
+			expectedMessage := domain.Message{
+				ID:        tc.mockMessage.ID,
+				ThreadID:  tc.mockMessage.ThreadID,
+				Content:   tc.mockMessage.Content,
+				CreatedAt: tc.mockMessage.CreatedAt,
+			}
 
-	if domainMessage.Content != mockMessage.Content {
-		t.Errorf("Expected Content %v, got %v", mockMessage.Content, domainMessage.Content)
-	}
+			mockQueries := NewMockMessagesQueries(tc.mockMessage, nil)
 
-	if domainMessage.CreatedAt != mockMessage.CreatedAt {
-		t.Errorf("Expected CreatedAt %v, got %v", mockMessage.CreatedAt, domainMessage.CreatedAt)
-	}
+			// Act
+			messageService := &MessageService{
+				queries: mockQueries,
+			}
 
-	assert.Nil(t, domainMessage.UpdatedAt)
-	assert.Nil(t, domainMessage.DeletedAt)
+			domainMessage, err := messageService.GetMessageByMessageID(
+				mockContext, tc.mockMessage.ID, tc.mockMessage.ThreadID,
+			)
+
+			// Assert
+			if err != nil {
+				t.Errorf("Expected no error, got %v", err)
+			}
+
+			assert.Equal(t, expectedMessage, domainMessage)
+			assert.Nil(t, domainMessage.UpdatedAt)
+			assert.Nil(t, domainMessage.DeletedAt)
+
+		})
+	}
 
 }
