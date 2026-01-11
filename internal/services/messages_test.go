@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -88,6 +89,11 @@ func TestGetMessageByMessageID(t *testing.T) {
 			},
 			mockError: nil,
 		},
+		{
+			name:        "No message found for given MessageID",
+			mockMessage: repository.Message{},
+			mockError:   errors.New("message not found"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -95,14 +101,19 @@ func TestGetMessageByMessageID(t *testing.T) {
 			// Arrange
 			mockContext := context.Background()
 
-			expectedMessage := domain.Message{
-				ID:        tc.mockMessage.ID,
-				ThreadID:  tc.mockMessage.ThreadID,
-				Content:   tc.mockMessage.Content,
-				CreatedAt: tc.mockMessage.CreatedAt,
+			var expectedMessage domain.Message
+			if tc.mockError == nil {
+				expectedMessage = domain.Message{
+					ID:        tc.mockMessage.ID,
+					ThreadID:  tc.mockMessage.ThreadID,
+					Content:   tc.mockMessage.Content,
+					CreatedAt: tc.mockMessage.CreatedAt,
+				}
+			} else {
+				expectedMessage = domain.Message{}
 			}
 
-			mockQueries := NewMockMessagesQueries(tc.mockMessage, nil)
+			mockQueries := NewMockMessagesQueries(tc.mockMessage, tc.mockError)
 
 			// Act
 			messageService := &MessageService{
@@ -114,13 +125,11 @@ func TestGetMessageByMessageID(t *testing.T) {
 			)
 
 			// Assert
-			if err != nil {
+			if tc.mockError == nil && err != nil {
 				t.Errorf("Expected no error, got %v", err)
 			}
-
 			assert.Equal(t, expectedMessage, domainMessage)
-			assert.Nil(t, domainMessage.UpdatedAt)
-			assert.Nil(t, domainMessage.DeletedAt)
+			assert.Equal(t, tc.mockError, err)
 
 		})
 	}
